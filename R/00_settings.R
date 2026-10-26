@@ -77,6 +77,18 @@ snapshot_dates <- c(
   patients  = "1 October 2026",
   iod       = "IoD 2025 (published 17 November 2025)"
 )
+# TODO: workforce is moving to the 30 September 2026 release once the files are
+# added to data/raw; update raw_files$workforce, snapshot_dates and MANIFEST.md.
+
+# Exclusions line: counts are filled from the exclusions log, never typed in.
+footer_exclusions <- function(n_total, n_capacity, n_data) {
+  sprintf(
+    "%d of %d practices are not shown: %d with no qualified GP or more than %s patients per GP, and %d with incomplete data.",
+    n_capacity + n_data, n_total, n_capacity,
+    format(max_patients_gp, big.mark = ","), n_data
+  )
+}
+
 footer_dates <- sprintf(
   "GPs at %s; registered patients at %s; deprivation: %s.",
   snapshot_dates[["workforce"]], snapshot_dates[["patients"]], snapshot_dates[["iod"]]
