@@ -13,11 +13,15 @@ can be checked against the copy used for the map.
 | `gp-reg-pat-prac-lsoa-all.csv` | Same publication, patients by practice and LSOA | 1 October 2026 | `28fd06e72e383b4078dbb6a159e326ed2023d447ab25a5b5a7f04d03f1f58af4` |
 | `IoD 2025 All Ranks Scores.csv` | [English Indices of Deprivation 2025](https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025), MHCLG | 17 November 2025 | `b1b716aa2e476449f987b9de3e08255b4794eabfd270626de5de18b2f5eff3ef` |
 
-## Still to download
+## Fetched by `R/01_download.R`
 
-- LSOA 2021 boundaries: IoD 2025 LSOA geopackage, MHCLG (base layer)
-- Borough outlines: dissolved from the geopackage LSOAs by local authority
-  code, so outlines and base layer line up exactly (no separate download)
-- Coordinates for practice postcodes: ONS Postcode Directory (ONSPD), latest
-  release at download time; also supplies each postcode's LSOA 2021 and local
-  authority code for the borough cross-check
+Checksums, sizes and download dates are written to
+[download_log.csv](download_log.csv) on each run.
+
+| File | Source | Release |
+|---|---|---|
+| `LSOA_IMD2025_OSGB1936.gpkg` | [LSOAs IMD2025 (OSGB1936)](https://www.arcgis.com/home/item.html?id=4da63019f25546aa92a922a5ea682950), MHCLG, ArcGIS item `4da63019f25546aa92a922a5ea682950` | IoD 2025; item last modified 30 October 2025 |
+| `ONSPD_AUG_2026.zip` | [ONS Postcode Directory (August 2026)](https://www.arcgis.com/home/item.html?id=9e5a92a3cfb14dc7ad43d6ea7a7b8c7f), ONS, ArcGIS item `9e5a92a3cfb14dc7ad43d6ea7a7b8c7f` | August 2026 |
+
+Borough outlines are dissolved from the GeoPackage LSOAs by local authority
+code in `R/02_clean.R`; no separate boundary file is downloaded.

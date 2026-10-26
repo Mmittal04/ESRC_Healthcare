@@ -46,7 +46,7 @@ source("R/03_map.R")        # build and export the map to outputs/
 | General Practice Workforce, practice-level CSV | NHS England | 30 September 2026 |
 | Patients Registered at a GP Practice | NHS England | 1 October 2026 |
 | English Indices of Deprivation 2025 | MHCLG | 17 November 2025 |
-| ONS Postcode Directory (practice coordinates) | ONS | TBD at download |
+| ONS Postcode Directory (practice coordinates) | ONS | August 2026 |
 | IoD 2025 LSOA geopackage (LSOA boundaries; boroughs dissolved from it) | MHCLG | 17 November 2025 |
 
 Full file list and checksums: [data/raw/MANIFEST.md](data/raw/MANIFEST.md).

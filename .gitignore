@@ -2,6 +2,7 @@
 # data/raw/MANIFEST.md records sources and checksums so anyone can rebuild them.
 data/raw/*
 !data/raw/MANIFEST.md
+!data/raw/download_log.csv
 data/processed/*
 !data/processed/.gitkeep
 

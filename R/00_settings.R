@@ -17,7 +17,26 @@ raw_files <- list(
   patients    = "gp-reg-pat-prac-all.csv",
   practice_map = "gp-reg-pat-prac-map.csv",
   patients_lsoa = "gp-reg-pat-prac-lsoa-all.csv",
-  iod         = "IoD 2025 All Ranks Scores.csv"
+  iod         = "IoD 2025 All Ranks Scores.csv",
+  lsoa_gpkg   = "LSOA_IMD2025_OSGB1936.gpkg",
+  onspd       = "ONSPD_AUG_2026.zip"
+)
+
+# Inputs fetched by 01_download.R. Both are ArcGIS Online items; the item id is
+# the stable reference, the URL is how the file is fetched today.
+downloads <- list(
+  lsoa_gpkg = list(
+    file    = raw_files$lsoa_gpkg,
+    item_id = "4da63019f25546aa92a922a5ea682950", # MHCLG, LSOAs IMD2025 (OSGB1936)
+    url     = "https://hub.arcgis.com/api/download/v1/items/4da63019f25546aa92a922a5ea682950/geoPackage?redirect=false&layers=0",
+    release = "IoD 2025, item last modified 30 October 2025"
+  ),
+  onspd = list(
+    file    = raw_files$onspd,
+    item_id = "9e5a92a3cfb14dc7ad43d6ea7a7b8c7f", # ONS Postcode Directory (August 2026)
+    url     = "https://www.arcgis.com/sharing/rest/content/items/9e5a92a3cfb14dc7ad43d6ea7a7b8c7f/data",
+    release = "August 2026"
+  )
 )
 
 # ---- Area filter ------------------------------------------------------------
