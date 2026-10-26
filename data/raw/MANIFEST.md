@@ -17,4 +17,6 @@ can be checked against the copy used for the map.
 
 - LSOA 2021 boundaries (source to be decided)
 - Local authority district boundaries for the ten boroughs (source to be decided)
-- Coordinates for practice postcodes (source to be decided)
+- Coordinates for practice postcodes: ONS Postcode Directory (ONSPD), latest
+  release at download time; also supplies each postcode's LSOA 2021 and local
+  authority code for the borough cross-check

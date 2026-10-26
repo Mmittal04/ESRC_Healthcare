@@ -7,4 +7,5 @@ source(here::here("R", "00_settings.R"))
 # TODO: verify checksums of existing raw files
 # TODO: download LSOA 2021 boundaries (source TBD)
 # TODO: download borough boundaries (source TBD)
-# TODO: look up coordinates for practice postcodes (source TBD)
+# TODO: download the ONS Postcode Directory and take coordinates, LSOA 2021 and
+#       local authority code for each practice postcode (offline lookup)
