@@ -31,11 +31,12 @@ boroughs <- c(
 )
 
 # ---- Workforce definition ---------------------------------------------------
-# Roles summed into "qualified GP FTE". TBD: confirm, in particular Retainer.
+# Roles summed into "qualified GP FTE". Trainees, locums and Retainers are left
+# out (Retainer excluded by decision, 26 Oct 2026), so this is narrower than
+# NHS England's "fully qualified GPs" headline figure.
 qualified_gp_roles <- c(
   "Partner/Provider", "Senior Partner",
-  "Salaried By Practice", "Salaried By Other",
-  "Retainer"
+  "Salaried By Practice", "Salaried By Other"
 )
 
 # ---- Exclusions -------------------------------------------------------------
