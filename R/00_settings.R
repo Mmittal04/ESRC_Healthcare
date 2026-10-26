@@ -68,6 +68,20 @@ band_colours <- c(
 )
 outline_colour <- "#4d4d4d"
 
+# ---- Footer -----------------------------------------------------------------
+# Snapshot dates differ by a month; both are stated on the panel (decision,
+# 26 Oct 2026). Practices that merged or closed in between show up as join
+# failures in 02_clean.R.
+snapshot_dates <- c(
+  workforce = "31 August 2026",
+  patients  = "1 October 2026",
+  iod       = "IoD 2025 (published 17 November 2025)"
+)
+footer_dates <- sprintf(
+  "GPs at %s; registered patients at %s; deprivation: %s.",
+  snapshot_dates[["workforce"]], snapshot_dates[["patients"]], snapshot_dates[["iod"]]
+)
+
 # ---- Print ------------------------------------------------------------------
 print_size_mm <- c(width = 594, height = 841) # A1 portrait
 print_dpi     <- 300
