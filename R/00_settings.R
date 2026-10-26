@@ -48,6 +48,14 @@ gp_measure <- "FTE"
 min_list_size   <- 1000 # practices with fewer registered patients are excluded
 max_patients_gp <- 6000 # hard cap (decision, 26 Oct 2026); zero qualified FTE also excluded
 
+# ---- Practice deprivation ---------------------------------------------------
+# Callout facts use patient-weighted deprivation: the IMD of the LSOAs where a
+# practice's registered patients live (gp-reg-pat-prac-lsoa-all.csv). The decile
+# of the LSOA the surgery sits in is kept as a secondary column for comparison
+# (decision, 26 Oct 2026).
+practice_deprivation <- "patient_weighted"
+patient_weighted_method <- "TBD" # average IMD rank, or majority national quintile
+
 # ---- Colours ----------------------------------------------------------------
 deprivation_greys <- c("#f7f7f7", "#d9d9d9", "#bdbdbd", "#969696", "#737373")
 band_colours <- c(

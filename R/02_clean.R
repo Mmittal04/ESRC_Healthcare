@@ -6,3 +6,5 @@ library(tidyverse)
 library(janitor)
 
 # TODO: follow the cleaning steps in the action plan
+# TODO: add patient-weighted deprivation per practice from the LSOA patients file
+#       (primary), alongside the surgery-LSOA decile (secondary)
