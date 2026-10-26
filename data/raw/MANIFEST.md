@@ -15,8 +15,9 @@ can be checked against the copy used for the map.
 
 ## Still to download
 
-- LSOA 2021 boundaries (source to be decided)
-- Local authority district boundaries for the ten boroughs (source to be decided)
+- LSOA 2021 boundaries: IoD 2025 LSOA geopackage, MHCLG (base layer)
+- Borough outlines: dissolved from the geopackage LSOAs by local authority
+  code, so outlines and base layer line up exactly (no separate download)
 - Coordinates for practice postcodes: ONS Postcode Directory (ONSPD), latest
   release at download time; also supplies each postcode's LSOA 2021 and local
   authority code for the borough cross-check
