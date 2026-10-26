@@ -54,7 +54,10 @@ max_patients_gp <- 6000 # hard cap (decision, 26 Oct 2026); zero qualified FTE a
 # of the LSOA the surgery sits in is kept as a secondary column for comparison
 # (decision, 26 Oct 2026).
 practice_deprivation <- "patient_weighted"
-patient_weighted_method <- "TBD" # average IMD rank, or majority national quintile
+# Mean national IMD rank of a practice's patients, mapped to national quintiles
+# (rank cut-offs at fifths of all English LSOAs). Majority quintile was rejected:
+# 184 of 378 practices have no quintile holding half their patients.
+patient_weighted_method <- "mean_rank_quintile"
 
 # ---- Colours ----------------------------------------------------------------
 deprivation_greys <- c("#f7f7f7", "#d9d9d9", "#bdbdbd", "#969696", "#737373")
