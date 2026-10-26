@@ -6,8 +6,8 @@ can be checked against the copy used for the map.
 
 | File | Source | Release | SHA-256 |
 |---|---|---|---|
-| `3 General Practice – August 2026 Practice Level - High level.csv` | [General Practice Workforce](https://www.gov.uk/government/statistics/general-practice-workforce-31-august-2026), NHS England | 31 August 2026 | `7faee23ec987157bd216d19f1a2870a1996c1880e8d680fa8ff7e3b2eedc8ad7` |
-| `2 General Practice High-level Practice-Level CSV. Overall Definitions.xlsx` | Same publication, field definitions | 31 August 2026 | `5564370c308f1525fe1ca1f625b75edbfe8f04faca6a9be3413d5bef6048d7cd` |
+| `3 General Practice – September 2026 Practice Level - High level.csv` | General Practice Workforce, NHS England | 30 September 2026 | `b708af890cf576536e9df97545544d002a7f1767a09ed0de3ac48b1f28029d7a` |
+| `2 General Practice High-level Practice-Level CSV. Overall Definitions.xlsx` | General Practice Workforce, field definitions (unchanged in the September release) | February 2025 | `5564370c308f1525fe1ca1f625b75edbfe8f04faca6a9be3413d5bef6048d7cd` |
 | `gp-reg-pat-prac-all.csv` | [Patients Registered at a GP Practice](https://digital.nhs.uk/data-and-information/publications/statistical/patients-registered-at-a-gp-practice/october-2026), NHS England | 1 October 2026 | `abeeed44eafe55c23a2515d21d3f63b93d99b43f3a613aaf792709ec5c1e59da` |
 | `gp-reg-pat-prac-map.csv` | Same publication, practice to PCN / ICB mapping | 1 October 2026 | `c1bd57716b426bb8e25ba4928470bac3e02b73fe9b7f8943973f1f2466855aa9` |
 | `gp-reg-pat-prac-lsoa-all.csv` | Same publication, patients by practice and LSOA | 1 October 2026 | `28fd06e72e383b4078dbb6a159e326ed2023d447ab25a5b5a7f04d03f1f58af4` |

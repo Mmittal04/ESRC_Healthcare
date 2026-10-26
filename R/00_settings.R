@@ -12,7 +12,7 @@ paths <- list(
 )
 
 raw_files <- list(
-  workforce   = "3 General Practice – August 2026 Practice Level - High level.csv",
+  workforce   = "3 General Practice – September 2026 Practice Level - High level.csv",
   definitions = "2 General Practice High-level Practice-Level CSV. Overall Definitions.xlsx",
   patients    = "gp-reg-pat-prac-all.csv",
   practice_map = "gp-reg-pat-prac-map.csv",
@@ -69,17 +69,14 @@ band_colours <- c(
 outline_colour <- "#4d4d4d"
 
 # ---- Footer -----------------------------------------------------------------
-# Snapshot dates differ by a month; both are stated on the panel (decision,
-# 26 Oct 2026). Practices that merged or closed in between show up as join
+# Snapshot dates differ by a day (workforce moved to the September release,
+# 26 Oct 2026); both are stated on the panel. Practices that merged or closed in between show up as join
 # failures in 02_clean.R.
 snapshot_dates <- c(
-  workforce = "31 August 2026",
+  workforce = "30 September 2026",
   patients  = "1 October 2026",
   iod       = "IoD 2025 (published 17 November 2025)"
 )
-# TODO: workforce is moving to the 30 September 2026 release once the files are
-# added to data/raw; update raw_files$workforce, snapshot_dates and MANIFEST.md.
-
 # Exclusions line: counts are filled from the exclusions log, never typed in.
 footer_exclusions <- function(n_total, n_capacity, n_data) {
   sprintf(

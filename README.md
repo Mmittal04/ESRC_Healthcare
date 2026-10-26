@@ -43,7 +43,7 @@ source("R/03_map.R")        # build and export the map to outputs/
 
 | Input | Publisher | Release |
 |---|---|---|
-| General Practice Workforce, practice-level CSV | NHS England | 31 August 2026 |
+| General Practice Workforce, practice-level CSV | NHS England | 30 September 2026 |
 | Patients Registered at a GP Practice | NHS England | 1 October 2026 |
 | English Indices of Deprivation 2025 | MHCLG | 17 November 2025 |
 | ONS Postcode Directory (practice coordinates) | ONS | TBD at download |

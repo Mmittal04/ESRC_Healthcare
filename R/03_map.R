@@ -5,4 +5,6 @@ library(tidyverse)
 library(sf)
 library(tmap)
 
-# TODO: base layer, practice dots, borough outlines, Ancoats anchor, annotations
+# TODO: base layer, practice dots, borough outlines, annotations
+# Ancoats anchor (star linking to the 1851 street scene) is deferred until the
+# link target is decided.
