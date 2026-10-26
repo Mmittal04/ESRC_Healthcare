@@ -1,0 +1,29 @@
+---
+title: "GP and street map: checks, bands and callout facts"
+format:
+  html:
+    embed-resources: true
+    code-fold: show
+execute:
+  echo: true
+  warning: true
+---
+
+This notebook holds the checks that sit between cleaning and the map: join
+diagnostics, the exclusions log, the colour-band cut-offs, and the callout facts
+table that every number on the panel comes from.
+
+```{r}
+#| label: setup
+# Load shared settings so thresholds and colours match the scripts.
+source(here::here("R", "00_settings.R"))
+library(tidyverse)
+```
+
+## Join checks
+
+## Exclusions
+
+## Colour bands
+
+## Callout facts

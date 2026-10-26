@@ -1,0 +1,24 @@
+# Raw and processed data are open but large (up to 89 MB); they stay local.
+# data/raw/MANIFEST.md records sources and checksums so anyone can rebuild them.
+data/raw/*
+!data/raw/MANIFEST.md
+data/processed/*
+!data/processed/.gitkeep
+
+# Outputs are rebuilt by the scripts
+outputs/*
+!outputs/.gitkeep
+
+# R and Quarto
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+renv/staging/
+renv/local/
+/.quarto/
+*_files/
+*.html
+
+# macOS
+.DS_Store
