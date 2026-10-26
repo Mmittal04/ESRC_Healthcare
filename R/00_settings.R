@@ -39,9 +39,14 @@ qualified_gp_roles <- c(
   "Salaried By Practice", "Salaried By Other"
 )
 
+# All GP counts use FTE, never headcount: headcount summed across roles can count
+# one person twice.
+gp_measure <- "FTE"
+
 # ---- Exclusions -------------------------------------------------------------
+# Each excluded practice is written to the exclusions log with its reason.
 min_list_size   <- 1000 # practices with fewer registered patients are excluded
-max_patients_gp <- 6000 # TBD: 18 practices exceed this; review before applying
+max_patients_gp <- 6000 # hard cap (decision, 26 Oct 2026); zero qualified FTE also excluded
 
 # ---- Colours ----------------------------------------------------------------
 deprivation_greys <- c("#f7f7f7", "#d9d9d9", "#bdbdbd", "#969696", "#737373")
