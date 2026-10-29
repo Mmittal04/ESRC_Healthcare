@@ -16,7 +16,7 @@ source("R/02_clean.R")      # filter, join, ratio, exclusions
 ```
 
 ```bash
-quarto render gp-map.qmd    # checks, bands and callout facts
+quarto render gp-map.qmd --output-dir outputs    # checks, bands and callout facts
 ```
 
 ```r

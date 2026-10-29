@@ -4,26 +4,250 @@ format:
   html:
     embed-resources: true
     code-fold: show
+    toc: true
 execute:
   echo: true
   warning: true
 ---
 
 This notebook holds the checks that sit between cleaning and the map: join
-diagnostics, the exclusions log, the colour-band cut-offs, and the callout facts
-table that every number on the panel comes from.
+diagnostics, the exclusions log, the colour-band cut-offs, a hand check of three
+practices against the raw files, and the callout facts tables that every number
+on the panel comes from. It reads the outputs of `R/02_clean.R`; run that first.
 
 ```{r}
 #| label: setup
-# Load shared settings so thresholds and colours match the scripts.
+#| message: false
+#| warning: false
+# Load shared settings so thresholds, groups and colours match the scripts.
 source(here::here("R", "00_settings.R"))
 library(tidyverse)
+library(knitr)
+
+practices <- read_csv(file.path(paths$processed, "practices.csv"), show_col_types = FALSE)
+exclusions_log <- read_csv(file.path(paths$processed, "exclusions_log.csv"), show_col_types = FALSE)
+
+# Kept practices with the groups the callout tables use. Deprivation groups 4
+# and 5 are merged: together they hold only 51 practices.
+kept <- practices |>
+  filter(kept) |>
+  mutate(
+    band = factor(band, c("least_busy", "typical", "busiest"),
+                  c("Least busy", "Typical", "Busiest")),
+    dep_group = factor(if_else(patient_quintile >= 4, "4-5", as.character(patient_quintile)),
+                       c("1", "2", "3", "4-5")),
+    size = cut(patients, size_breaks, size_labels, right = FALSE)
+  )
+
+pct <- \(x) round(100 * mean(x))
+fmt <- \(x) format(round(x), big.mark = ",")
 ```
 
 ## Join checks
 
+`R/02_clean.R` prints rows in, rows out and unmatched codes for every join. This
+section confirms that the saved file is complete and stops the render if not.
+
+```{r}
+#| label: join-checks
+checks <- tibble(
+  check = c(
+    "GM practices (ICB QOP)",
+    "Practices with coordinates",
+    "Practices inside the ten boroughs",
+    "Practices with patient-weighted deprivation",
+    "Kept practices",
+    "Excluded practices (in the log)"
+  ),
+  value = c(
+    nrow(practices),
+    sum(!is.na(practices$east)),
+    sum(!is.na(practices$borough)),
+    sum(!is.na(practices$mean_patient_rank)),
+    sum(practices$kept),
+    nrow(exclusions_log)
+  )
+)
+kable(checks)
+
+stopifnot(
+  all(!is.na(practices$east)),
+  all(!is.na(practices$borough)),
+  all(!is.na(practices$mean_patient_rank)),
+  sum(practices$kept) + nrow(exclusions_log) == nrow(practices)
+)
+```
+
 ## Exclusions
+
+Capacity exclusions are practices above `r fmt(max_patients_gp)` patients per
+qualified GP, or with no qualified GP FTE. Data exclusions are missing or NA
+workforce returns, or lists under `r fmt(min_list_size)` patients.
+
+```{r}
+#| label: exclusions
+exclusions_log |>
+  mutate(across(starts_with("fte_"), \(x) round(x, 2)),
+         patients_per_gp = fmt(patients_per_gp)) |>
+  kable()
+
+n_capacity <- sum(exclusions_log$exclusion_type == "capacity")
+n_data <- sum(exclusions_log$exclusion_type == "data")
+footer_line <- footer_exclusions(nrow(practices), n_capacity, n_data)
+```
+
+Footer line, generated from this log:
+
+> `r footer_line`
+
+```{r}
+#| label: capped-vs-kept
+# Capped practices against kept ones, for the exclusions review.
+practices |>
+  filter(kept | exclusion_type == "capacity") |>
+  mutate(group = if_else(kept, "Kept", "Capacity exclusion")) |>
+  group_by(group) |>
+  summarise(practices = n(),
+            mean_qualified_fte = round(mean(fte_qualified), 2),
+            mean_locum_trainee_fte = round(mean(fte_locum + fte_trainee), 2),
+            median_list = fmt(median(patients))) |>
+  kable()
+```
 
 ## Colour bands
 
+Quartiles of patients per GP across kept practices.
+
+```{r}
+#| label: bands
+cuts <- quantile(kept$patients_per_gp, c(0.25, 0.75), names = FALSE)
+kept |>
+  group_by(band) |>
+  summarise(practices = n(),
+            from = fmt(min(patients_per_gp)), to = fmt(max(patients_per_gp))) |>
+  kable()
+```
+
+```{r}
+#| label: bands-plot
+#| fig-height: 3
+ggplot(kept, aes(patients_per_gp, fill = band)) +
+  geom_histogram(binwidth = 200, boundary = 0, colour = "grey30", linewidth = 0.2) +
+  geom_vline(xintercept = cuts, linetype = "dashed") +
+  scale_fill_manual(values = unname(band_colours[c("least_busy", "typical", "busiest")])) +
+  labs(x = "Patients per qualified GP (FTE)", y = "Practices", fill = NULL) +
+  theme_minimal()
+```
+
+## Hand check against the raw files
+
+One practice from each band, recomputed straight from the raw CSVs without the
+cleaning code, then compared with `practices.csv`.
+
+```{r}
+#| label: hand-check
+pick <- kept |>
+  group_by(band) |>
+  slice_min(abs(patients_per_gp - median(patients_per_gp)), n = 1, with_ties = FALSE) |>
+  pull(prac_code)
+
+raw_wf <- read_csv(file.path(paths$raw, raw_files$workforce), na = character(),
+                   col_types = cols(.default = col_character())) |>
+  filter(PRAC_CODE %in% pick, STAFF_GROUP == "GP", MEASURE == "FTE",
+         DETAILED_STAFF_ROLE %in% qualified_gp_roles) |>
+  group_by(prac_code = PRAC_CODE) |>
+  summarise(raw_fte = sum(as.numeric(VALUE)))
+raw_pat <- read_csv(file.path(paths$raw, raw_files$patients), show_col_types = FALSE) |>
+  filter(CODE %in% pick) |>
+  select(prac_code = CODE, raw_patients = NUMBER_OF_PATIENTS)
+
+hand <- kept |>
+  filter(prac_code %in% pick) |>
+  select(prac_code, prac_name, band, patients, fte_qualified, patients_per_gp) |>
+  left_join(raw_pat, by = "prac_code") |>
+  left_join(raw_wf, by = "prac_code") |>
+  mutate(raw_ratio = raw_patients / raw_fte,
+         match = patients == raw_patients & abs(fte_qualified - raw_fte) < 1e-9)
+kable(mutate(hand, across(c(fte_qualified, raw_fte), \(x) round(x, 3)),
+             across(c(patients_per_gp, raw_ratio), fmt)))
+stopifnot(all(hand$match))
+```
+
+## Deprivation measures compared
+
+Patient-weighted quintile (used for the callout facts) against the quintile of
+the LSOA each surgery sits in.
+
+```{r}
+#| label: deprivation-compare
+cat("Same quintile:", sum(kept$patient_quintile == kept$surgery_quintile), "of", nrow(kept), "\n")
+table(patient_weighted = kept$patient_quintile, surgery = kept$surgery_quintile)
+```
+
 ## Callout facts
+
+Every number on the panel must come from one of these tables. Group 1 is the
+most deprived national fifth, by the mean IMD rank of each practice's patients.
+
+### A. Deprivation group and band
+
+```{r}
+#| label: facts-deprivation
+facts_dep <- kept |>
+  group_by(dep_group) |>
+  summarise(practices = n(),
+            pct_busiest = pct(band == "Busiest"),
+            pct_least_busy = pct(band == "Least busy"),
+            median_patients_per_gp = fmt(median(patients_per_gp)),
+            pooled_patients_per_gp = fmt(sum(patients) / sum(fte_qualified)),
+            median_list = fmt(median(patients)))
+kable(facts_dep)
+cat(sprintf("Rank correlation, patient deprivation rank vs patients per GP: %+.2f\n",
+            cor(kept$mean_patient_rank, kept$patients_per_gp, method = "spearman")))
+```
+
+### B. Practice size and band
+
+```{r}
+#| label: facts-size
+facts_size <- kept |>
+  group_by(size) |>
+  summarise(practices = n(),
+            pct_busiest = pct(band == "Busiest"),
+            pct_least_busy = pct(band == "Least busy"),
+            median_patients_per_gp = fmt(median(patients_per_gp)),
+            pooled_patients_per_gp = fmt(sum(patients) / sum(fte_qualified)),
+            median_qualified_fte = round(median(fte_qualified), 1),
+            pct_in_group_1 = pct(dep_group == "1"))
+kable(facts_size)
+```
+
+### C. Size within each deprivation group
+
+Separates the two: does size still matter once deprivation is held fixed? Medium
+and large are merged so each cell keeps enough practices.
+
+```{r}
+#| label: facts-size-within-dep
+facts_cross <- kept |>
+  mutate(size2 = if_else(patients < size_breaks[2], "Small", "Medium or large")) |>
+  group_by(dep_group, size2) |>
+  summarise(practices = n(),
+            pct_busiest = pct(band == "Busiest"),
+            median_patients_per_gp = fmt(median(patients_per_gp)),
+            .groups = "drop")
+kable(facts_cross)
+```
+
+### D. Headline figures
+
+```{r}
+#| label: facts-headline
+tibble(
+  figure = c("Practices on the map", "Registered patients at those practices",
+             "Median patients per GP", "Busiest band starts at",
+             "Least busy band ends at"),
+  value = c(fmt(nrow(kept)), fmt(sum(kept$patients)),
+            fmt(median(kept$patients_per_gp)), fmt(cuts[2]), fmt(cuts[1]))
+) |> kable()
+```

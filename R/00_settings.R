@@ -78,6 +78,11 @@ practice_deprivation <- "patient_weighted"
 # 184 of 378 practices have no quintile holding half their patients.
 patient_weighted_method <- "mean_rank_quintile"
 
+# ---- Practice size ----------------------------------------------------------
+# Registered list size groups for the size story (decision, 29 Oct 2026).
+size_breaks <- c(0, 5000, 10000, Inf)
+size_labels <- c("Small (under 5,000)", "Medium (5,000 to 9,999)", "Large (10,000+)")
+
 # ---- Geometry ---------------------------------------------------------------
 crs_bng <- 27700 # British National Grid; the GeoPackage arrives in Web Mercator
 # Boundaries are simplified with mapshaper (Visvalingam), keeping this share of
