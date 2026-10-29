@@ -78,6 +78,15 @@ practice_deprivation <- "patient_weighted"
 # 184 of 378 practices have no quintile holding half their patients.
 patient_weighted_method <- "mean_rank_quintile"
 
+# ---- Geometry ---------------------------------------------------------------
+crs_bng <- 27700 # British National Grid; the GeoPackage arrives in Web Mercator
+# Boundaries are simplified with mapshaper (Visvalingam), keeping this share of
+# vertices; shared edges stay shared. 0.2 was calibrated on 29 Oct 2026: 1.17M
+# to 240k GM vertices, max boundary shift 11.5 m (target 20 m; at A1, 1 mm of
+# paper is about 75 m). 02_clean.R prints the shift on every run.
+simplify_keep  <- 0.2
+simplify_max_m <- 20
+
 # ---- Colours ----------------------------------------------------------------
 deprivation_greys <- c("#f7f7f7", "#d9d9d9", "#bdbdbd", "#969696", "#737373")
 band_colours <- c(
