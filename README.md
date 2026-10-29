@@ -20,8 +20,10 @@ quarto render gp-map.qmd --output-dir outputs/notebook    # checks, bands and ca
 ```
 
 ```r
-source("R/03_map.R")        # build and export the map to outputs/
+source("R/03_map.R")        # A1 sheet: outputs/gp-map-a1.pdf (fonts embedded) and a preview PNG
 ```
+
+The PDF step needs Ghostscript (`brew install ghostscript`) to embed fonts.
 
 ## Layout
 
@@ -31,12 +33,13 @@ source("R/03_map.R")        # build and export the map to outputs/
 │   ├── raw/          untouched downloads (git-ignored; see MANIFEST.md)
 │   └── processed/    cleaned files written by the scripts
 ├── R/
-│   ├── 00_settings.R paths, area filter, thresholds, colours
-│   ├── 01_download.R fetch each input, record the release date
-│   ├── 02_clean.R    filter, join, ratio, exclusions, coordinates
-│   └── 03_map.R      build the map, add annotations, export PDF
-├── gp-map.qmd        annotated notebook: checks, bands, callout facts
-└── outputs/          print PDF and preview PNG
+│   ├── 00_settings.R    paths, thresholds, colours, layout, panel wording
+│   ├── 01_download.R    fetch each input, record the release date
+│   ├── 02_clean.R       filter, join, ratio, exclusions, coordinates
+│   ├── callout_facts.R  every number on the panel, shared by notebook and map
+│   └── 03_map.R         build the map and the A1 sheet, export PDF
+├── gp-map.qmd           annotated notebook: checks, bands, callout facts
+└── outputs/             print PDF, preview PNG, notebook/ (rendered notebook)
 ```
 
 ## Sources

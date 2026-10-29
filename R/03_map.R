@@ -1,19 +1,23 @@
 # Steps 5 to 7: build the map, add annotations, export the A1 PDF and a preview PNG.
-# This draft builds the map itself (base, dots, borough outlines) at true A1
-# size, in two dot styles for comparison. Headline, callouts and footer are
-# step 6. ggplot2 is used rather than tmap because it sets dot sizes in mm
-# and text in points exactly, which the print specification needs.
+# The map is drawn at true A1 size; the sheet adds the headline, how-to-read
+# line, legends, numbered callouts and footer around it. ggplot2 and grid are
+# used rather than tmap because they set dot sizes in mm and text in points
+# exactly, which the print specification needs.
 # Ancoats anchor (star linking to the 1851 street scene) is deferred until the
 # link target is decided.
 
 source(here::here("R", "00_settings.R"))
+source(here::here("R", "callout_facts.R"))
 library(tidyverse)
 library(sf)
+library(grid)
 
 lsoa <- st_read(file.path(paths$processed, "lsoa_gm.gpkg"), quiet = TRUE)
 boroughs_sf <- st_read(file.path(paths$processed, "boroughs.gpkg"), quiet = TRUE)
 practices <- read_csv(file.path(paths$processed, "practices.csv"), show_col_types = FALSE) |>
   filter(kept)
+facts <- callout_facts(practices)
+exclusions_log <- read_csv(file.path(paths$processed, "exclusions_log.csv"), show_col_types = FALSE)
 
 # ---- Spread practices that share a site ----------------------------------------
 # Each practice at a shared postcode moves to an evenly spaced point on a ring
@@ -100,15 +104,112 @@ map_final <- base_map() +
                       fill = "white", colour = band_colours[["busiest"]], stroke = 0.9))) +
   borough_labels()
 
-# ---- Export ------------------------------------------------------------------------
-# Drafts are the map alone at its A1 print size; the full sheet is assembled in
-# step 6 once the annotations are written.
-save_draft <- function(plot, name) {
-  w <- map_width_mm; h <- map_height_mm + 120 # room for the legend under the map
-  ggsave(file.path(paths$outputs, paste0(name, ".pdf")), plot,
-         width = w, height = h, units = "mm", device = "pdf", useDingbats = FALSE)
-  ggsave(file.path(paths$outputs, paste0(name, ".png")), plot,
-         width = w, height = h, units = "mm", dpi = 72, bg = "white")
+# ---- Callout markers -------------------------------------------------------------
+# A numbered circle sits off each cluster, joined to its centre by a short line.
+markers <- facts$clusters |>
+  left_join(callout_marker_offset_m, by = "id") |>
+  mutate(mx = x + dx, my = y + dy)
+
+map_sheet <- map_final +
+  geom_segment(data = markers, aes(x = mx, y = my, xend = x, yend = y),
+               linewidth = 1, colour = text_colour) +
+  geom_point(data = markers, aes(x, y), shape = 21, size = 3, fill = text_colour,
+             colour = "white", stroke = 0.6) +
+  geom_point(data = markers, aes(mx, my), shape = 21, size = callout_marker_mm,
+             fill = "white", colour = text_colour, stroke = 1.6) +
+  geom_text(data = markers, aes(mx, my, label = id), size = text_pt[["callout_title"]] / .pt,
+            fontface = "bold", colour = text_colour)
+
+# ---- Sheet ---------------------------------------------------------------------------
+# Everything is placed in mm from the sheet's top-left corner.
+W <- print_size_mm[["width"]]; H <- print_size_mm[["height"]]; M <- page_margin_mm
+at <- \(top_mm) unit(H - top_mm, "mm")
+
+text_box <- function(text, top_mm, left_mm, width_mm, pt, face = "plain", lineheight = 1.15) {
+  # R's pdf device draws "-" as a minus sign; a soft hyphen prints as a hyphen.
+  text <- gsub("-", "­", text, fixed = TRUE)
+  gridtext::textbox_grob(
+    text, x = unit(left_mm, "mm"), y = at(top_mm), width = unit(width_mm, "mm"),
+    hjust = 0, vjust = 1, halign = 0, valign = 1,
+    gp = gpar(fontsize = pt, fontface = face, col = text_colour, lineheight = lineheight)
+  )
 }
-save_draft(map_final, "draft-map")
-cat("Wrote draft maps to outputs/\n")
+
+legends_of <- function(plot) {
+  g <- ggplotGrob(plot + theme(legend.text = element_text(size = text_pt[["legend"]]),
+                               legend.title = element_text(size = text_pt[["legend"]] + 2, face = "bold")))
+  g$grobs[[which(startsWith(g$layout$name, "guide-box-bottom"))]]
+}
+
+draw_sheet <- function() {
+  grid.newpage()
+  grid.rect(gp = gpar(fill = "white", col = NA))
+
+  # Headline, subheadline, how to read.
+  r <- sheet_rows_mm
+  grid.draw(text_box(panel_headline, r[["headline_top"]], M, W - 2 * M,
+                     text_pt[["headline"]], "bold", lineheight = 1))
+  grid.draw(text_box(sprintf(panel_subheadline, facts$headline$pct_small_busy,
+                             facts$headline$pct_large_busy),
+                     r[["headline_top"]] + 78, M, W - 2 * M, text_pt[["subheadline"]]))
+  grid.draw(text_box(panel_how_to_read, r[["headline_top"]] + 120, M, W - 2 * M,
+                     text_pt[["how_to_read"]]))
+
+  # Map at its exact print size.
+  pushViewport(viewport(x = unit(M, "mm"), y = at(r[["map_top"]]), just = c("left", "top"),
+                        width = unit(map_width_mm, "mm"), height = unit(map_height_mm, "mm")))
+  grid.draw(ggplotGrob(map_sheet + theme(legend.position = "none",
+                                          plot.margin = margin(0, 0, 0, 0))))
+  popViewport()
+
+  # Legends in a row under the map.
+  pushViewport(viewport(x = unit(M, "mm"), y = at(r[["legend_top"]]), just = c("left", "top"),
+                        width = unit(W - 2 * M, "mm"), height = unit(r[["callout_top"]] - r[["legend_top"]], "mm")))
+  grid.draw(legends_of(map_final + theme(legend.justification = c(0, 1))))
+  popViewport()
+
+  # Numbered callouts in three columns.
+  col_w <- (W - 2 * M - 2 * 12) / 3
+  for (i in seq_len(nrow(facts$clusters))) {
+    left <- M + (i - 1) * (col_w + 12)
+    top <- r[["callout_top"]]
+    grid.circle(x = unit(left + callout_marker_mm / 2, "mm"), y = at(top + callout_marker_mm / 2),
+                r = unit(callout_marker_mm / 2, "mm"),
+                gp = gpar(fill = "white", col = text_colour, lwd = 4.5))
+    grid.text(i, x = unit(left + callout_marker_mm / 2, "mm"), y = at(top + callout_marker_mm / 2),
+              gp = gpar(fontsize = text_pt[["callout_title"]], fontface = "bold", col = text_colour))
+    grid.draw(text_box(facts$clusters$title[i], top + 1, left + callout_marker_mm + 5,
+                       col_w - callout_marker_mm - 5, text_pt[["callout_title"]], "bold"))
+    grid.draw(text_box(facts$clusters$body[i], top + callout_marker_mm + 6, left, col_w,
+                       text_pt[["callout_body"]]))
+  }
+
+  # Footer: method, exclusions, sources and dates in small type.
+  n_capacity <- sum(exclusions_log$exclusion_type == "capacity")
+  n_data <- sum(exclusions_log$exclusion_type == "data")
+  footer <- paste(
+    panel_method,
+    footer_exclusions(nrow(practices) + nrow(exclusions_log), n_capacity, n_data),
+    "<br><br>", panel_sources, footer_dates
+  )
+  grid.lines(x = unit(c(M, W - M), "mm"), y = at(r[["footer_top"]] - 4),
+             gp = gpar(col = "#999999", lwd = 1))
+  grid.draw(text_box(footer, r[["footer_top"]], M, W - 2 * M, text_pt[["footer"]]))
+}
+
+# ---- Export ------------------------------------------------------------------------
+# WinAnsi encoding keeps curly apostrophes and real hyphens. Fonts are then
+# embedded with Ghostscript, which printers need.
+pdf_draft <- file.path(paths$outputs, "gp-map-a1-unembedded.pdf")
+pdf(pdf_draft, width = W / 25.4, height = H / 25.4,
+    useDingbats = FALSE, encoding = "WinAnsi.enc")
+draw_sheet()
+invisible(dev.off())
+embedFonts(pdf_draft, outfile = file.path(paths$outputs, "gp-map-a1.pdf"),
+           options = "-dPDFSETTINGS=/prepress")
+file.remove(pdf_draft)
+png(file.path(paths$outputs, "gp-map-a1-preview.png"), width = W, height = H,
+    units = "mm", res = 72, bg = "white")
+draw_sheet()
+invisible(dev.off())
+cat("Wrote outputs/gp-map-a1.pdf and outputs/gp-map-a1-preview.png\n")

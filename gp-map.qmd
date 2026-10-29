@@ -239,6 +239,23 @@ facts_cross <- kept |>
 kable(facts_cross)
 ```
 
+### E. Callout clusters
+
+The three places the panel's numbered callouts point at, and the sentences
+printed for them. Both come from `R/callout_facts.R`, which `R/03_map.R` also uses.
+
+```{r}
+#| label: facts-clusters
+source(here::here("R", "callout_facts.R"))
+facts <- callout_facts(practices |> filter(kept))
+facts$clusters |>
+  select(id, title, n, n_small, n_busy, n_group_1, median_list, body) |>
+  mutate(median_list = fmt(median_list)) |>
+  kable()
+cat(sprintf("Subheadline: %d%% of small practices busiest, %d%% of large.\n",
+            facts$headline$pct_small_busy, facts$headline$pct_large_busy))
+```
+
 ### D. Headline figures
 
 ```{r}

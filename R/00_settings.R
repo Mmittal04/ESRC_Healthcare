@@ -120,7 +120,14 @@ outline_colour <- "#4d4d4d"
 
 # ---- Map layout (mm on the A1 sheet) ----------------------------------------
 page_margin_mm <- 20
-map_top_mm     <- 230 # space above the map for headline and how-to-read line
+# Vertical bands of the sheet, measured from the top edge in mm.
+sheet_rows_mm <- c(
+  headline_top = 22,  # headline, subheadline and how-to-read line start here
+  map_top      = 182, # map (554 x 406 mm) starts here
+  legend_top   = 598, # three legends in a row
+  callout_top  = 678, # three numbered callouts in columns
+  footer_top   = 778  # sources, dates, method, exclusions
+)
 
 # Practice dots: colour shows the busy band (blue gradient above), diameter
 # in mm on paper shows practice size, one size per size_labels group
@@ -160,6 +167,39 @@ footer_exclusions <- function(n_total, n_capacity, n_data) {
 footer_dates <- sprintf(
   "GPs at %s; registered patients at %s; deprivation: %s.",
   snapshot_dates[["workforce"]], snapshot_dates[["patients"]], snapshot_dates[["iod"]]
+)
+
+# Callout markers on the map: circle diameter in mm and the offset (metres on
+# the ground) from each cluster's centre, pointing into emptier space.
+callout_marker_mm <- 15
+callout_marker_offset_m <- tibble::tribble(
+  ~id, ~dx,   ~dy,
+  1,   -4500, 5000,
+  2,    4500, 5500,
+  3,    8000, -4500
+)
+
+# ---- Panel text ---------------------------------------------------------------
+# Wording only; every number is filled from R/callout_facts.R. Sizes in points
+# (print spec: body at least 24 pt, headline at least 72 pt).
+text_pt <- c(headline = 96, subheadline = 40, how_to_read = 28,
+             callout_title = 34, callout_body = 27, legend = 26, footer = 19)
+text_colour <- "#1a1a1a"
+
+panel_headline <- "Smaller surgeries stretch their GPs furthest"
+panel_subheadline <- "Across Greater Manchester, %d%% of small GP practices are in the busiest quarter for patients per GP, compared with %d%% of large practices."
+panel_how_to_read <- "Each dot is a GP practice. Darker blue means more patients for each full-time GP; bigger dots are practices with more registered patients. The background shows how deprived each neighbourhood is."
+
+panel_method <- paste(
+  "**How this was measured.** Patients per GP is registered patients divided by full-time-equivalent qualified GPs",
+  "(partners and salaried GPs; trainees, locums and retainers are not counted). It measures GP capacity only:",
+  "nurses, pharmacists and other practice staff are outside the count. Busy bands are quarters of Greater Manchester practices.",
+  "Small practices have under 5,000 registered patients, large ones 10,000 or more.",
+  "Shading describes neighbourhoods, not people: many people on low incomes live outside the darkest areas, and the reverse."
+)
+panel_sources <- paste(
+  "**Sources.** NHS England: General Practice Workforce and Patients Registered at a GP Practice.",
+  "MHCLG: English Indices of Deprivation 2025. ONS Postcode Directory (August 2026). Contains OS and ONS data, Crown copyright."
 )
 
 # ---- Print ------------------------------------------------------------------
