@@ -101,6 +101,26 @@ band_colours <- c(
 )
 outline_colour <- "#4d4d4d"
 
+# ---- Map layout (mm on the A1 sheet) ----------------------------------------
+page_margin_mm <- 20
+map_top_mm     <- 230 # space above the map for headline and how-to-read line
+
+# Practice dots, diameters in mm on paper. Plan design: busiest larger.
+dot_spec <- tibble::tribble(
+  ~band,        ~diameter_mm, ~fill,                     ~outline,
+  "least_busy", 3.5,          band_colours[["least_busy"]], "#ffffff",
+  "typical",    3.5,          band_colours[["typical"]],    outline_colour,
+  "busiest",    5.5,          band_colours[["busiest"]],    "#ffffff"
+)
+# Draft alternative for the size story: dot area proportional to list size.
+dot_list_size_range_mm <- c(2.5, 9)
+
+# Practices sharing one postcode are spread on a small ring so dots do not
+# stack; radius in metres on the ground (about 2 mm at A1).
+site_ring_m <- 150
+
+borough_label_pt <- 22
+
 # ---- Footer -----------------------------------------------------------------
 # Snapshot dates differ by a day (workforce moved to the September release,
 # 26 Oct 2026); both are stated on the panel. Practices that merged or closed in between show up as join
