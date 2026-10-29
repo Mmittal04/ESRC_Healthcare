@@ -122,25 +122,20 @@ outline_colour <- "#4d4d4d"
 page_margin_mm <- 20
 map_top_mm     <- 230 # space above the map for headline and how-to-read line
 
-# Practice dots, diameters in mm on paper. Busiest largest; least busy a
-# little smaller than typical so the two light blues also differ in greyscale
-# (enlarged 29 Oct 2026).
+# Practice dots: colour shows the busy band (blue gradient above), diameter
+# in mm on paper shows practice size, one size per size_labels group
+# (decision, 29 Oct 2026). Outlines keep the light blues visible on pale areas.
 dot_spec <- tibble::tribble(
-  ~band,        ~diameter_mm, ~fill,                     ~outline,
-  "least_busy", 4.5,          band_colours[["least_busy"]], band_colours[["busiest"]],
-  "typical",    5.5,          band_colours[["typical"]],    band_colours[["busiest"]],
-  "busiest",    8,            band_colours[["busiest"]],    "#ffffff"
+  ~band,        ~fill,                        ~outline,
+  "least_busy", band_colours[["least_busy"]], band_colours[["busiest"]],
+  "typical",    band_colours[["typical"]],    band_colours[["busiest"]],
+  "busiest",    band_colours[["busiest"]],    "#ffffff"
 )
-
-# Size story on the map: small practices (under size_breaks[2] patients) get
-# an open ring this much wider than their dot, so they stand out without
-# shrinking the busiest dots.
-small_ring_extra_mm <- 3.5
-small_ring_colour   <- "#111111"
+dot_size_mm <- c(small = 6, medium = 8, large = 10.5)
 
 # Practices sharing one postcode are spread on a small ring so dots do not
-# stack; radius in metres on the ground (about 3 mm at A1).
-site_ring_m <- 300
+# stack; radius in metres on the ground (about 4.5 mm at A1).
+site_ring_m <- 450
 
 borough_label_pt <- 22
 

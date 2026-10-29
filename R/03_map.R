@@ -28,9 +28,13 @@ practices <- practices |>
   ) |>
   ungroup() |>
   left_join(dot_spec, by = "band") |>
-  mutate(band = factor(band, dot_spec$band)) |>
-  # Busiest dots are drawn last so they sit on top.
-  arrange(band)
+  mutate(
+    band = factor(band, dot_spec$band),
+    size_group = cut(patients, size_breaks, names(dot_size_mm), right = FALSE)
+  ) |>
+  # Large dots first, small ones on top so they are never hidden; within a
+  # size, busiest last.
+  arrange(desc(size_group), band)
 
 # ---- Scale: fit the map to the sheet width ---------------------------------------
 bbox <- st_bbox(boroughs_sf)
@@ -78,33 +82,22 @@ borough_labels <- function() {
   )
 }
 
-# Plan design: colour and size by band.
-map_by_band <- base_map() +
+# Colour by busy band, diameter by practice size.
+map_final <- base_map() +
   ggnewscale::new_scale_fill() +
   geom_point(data = practices,
-             aes(x, y, fill = band, size = band, colour = band),
-             shape = 21, stroke = 0.8) +
+             aes(x, y, fill = band, size = size_group, colour = band),
+             shape = 21, stroke = 0.9) +
   scale_fill_manual(values = set_names(dot_spec$fill, dot_spec$band),
                     labels = c("Least busy quarter", "Typical", "Busiest quarter of practices"),
                     name = "Patients per GP",
                     guide = guide_legend(order = 1, override.aes = list(
-                      size = dot_spec$diameter_mm, colour = dot_spec$outline, stroke = 0.8))) +
+                      size = dot_size_mm[["medium"]], colour = dot_spec$outline, stroke = 0.9))) +
   scale_colour_manual(values = set_names(dot_spec$outline, dot_spec$band), guide = "none") +
-  scale_size_manual(values = set_names(dot_spec$diameter_mm, dot_spec$band),
-                    guide = "none") +
-  borough_labels()
-
-# Size story: the same dots, with an open ring around small practices.
-small <- filter(practices, patients < size_breaks[2])
-map_by_band_small <- map_by_band +
-  geom_point(data = small, aes(x, y, shape = "small"),
-             size = small$diameter_mm + small_ring_extra_mm,
-             colour = small_ring_colour, stroke = 1.1) +
-  scale_shape_manual(values = c(small = 1),
-                     labels = sprintf("Small practice (under %s patients)",
-                                      format(size_breaks[2], big.mark = ",")),
-                     name = "Practice size",
-                     guide = guide_legend(order = 2, override.aes = list(size = 9, stroke = 1.1))) +
+  scale_size_manual(values = dot_size_mm, labels = size_labels,
+                    name = "Practice size (registered patients)",
+                    guide = guide_legend(order = 2, override.aes = list(
+                      fill = "white", colour = band_colours[["busiest"]], stroke = 0.9))) +
   borough_labels()
 
 # ---- Export ------------------------------------------------------------------------
@@ -117,6 +110,5 @@ save_draft <- function(plot, name) {
   ggsave(file.path(paths$outputs, paste0(name, ".png")), plot,
          width = w, height = h, units = "mm", dpi = 72, bg = "white")
 }
-save_draft(map_by_band, "draft-map-by-band")
-save_draft(map_by_band_small, "draft-map-by-band-small")
+save_draft(map_final, "draft-map")
 cat("Wrote draft maps to outputs/\n")
