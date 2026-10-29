@@ -51,7 +51,8 @@ base_map <- function() {
   ggplot() +
     geom_sf(data = lsoa, aes(fill = factor(imd_quintile)), colour = NA) +
     scale_fill_manual(values = deprivation_colours, labels = quintile_labels,
-                      name = "Neighbourhood deprivation (IMD 2025)") +
+                      name = "Neighbourhood deprivation (IMD 2025)",
+                      guide = guide_legend(order = 3)) +
     geom_sf(data = boroughs_sf, fill = NA, colour = outline_colour, linewidth = 0.5) +
     coord_sf(crs = crs_bng, datum = NA, expand = FALSE,
              xlim = bbox[c("xmin", "xmax")], ylim = bbox[c("ymin", "ymax")]) +
@@ -86,26 +87,24 @@ map_by_band <- base_map() +
   scale_fill_manual(values = set_names(dot_spec$fill, dot_spec$band),
                     labels = c("Least busy quarter", "Typical", "Busiest quarter of practices"),
                     name = "Patients per GP",
-                    guide = guide_legend(override.aes = list(
+                    guide = guide_legend(order = 1, override.aes = list(
                       size = dot_spec$diameter_mm, colour = dot_spec$outline, stroke = 0.8))) +
   scale_colour_manual(values = set_names(dot_spec$outline, dot_spec$band), guide = "none") +
   scale_size_manual(values = set_names(dot_spec$diameter_mm, dot_spec$band),
                     guide = "none") +
   borough_labels()
 
-# Size story: colour by band, area by list size.
-map_by_size <- base_map() +
-  ggnewscale::new_scale_fill() +
-  geom_point(data = arrange(practices, desc(patients)),
-             aes(x, y, fill = band, size = patients, colour = band),
-             shape = 21, stroke = 0.8) +
-  scale_fill_manual(values = set_names(dot_spec$fill, dot_spec$band),
-                    labels = c("Least busy quarter", "Typical", "Busiest quarter of practices"),
-                    name = "Patients per GP") +
-  scale_colour_manual(values = set_names(dot_spec$outline, dot_spec$band), guide = "none") +
-  scale_size_area(max_size = dot_list_size_range_mm[2],
-                  breaks = c(2500, 10000, 25000), labels = scales::label_comma(),
-                  name = "Registered patients") +
+# Size story: the same dots, with an open ring around small practices.
+small <- filter(practices, patients < size_breaks[2])
+map_by_band_small <- map_by_band +
+  geom_point(data = small, aes(x, y, shape = "small"),
+             size = small$diameter_mm + small_ring_extra_mm,
+             colour = small_ring_colour, stroke = 1.1) +
+  scale_shape_manual(values = c(small = 1),
+                     labels = sprintf("Small practice (under %s patients)",
+                                      format(size_breaks[2], big.mark = ",")),
+                     name = "Practice size",
+                     guide = guide_legend(order = 2, override.aes = list(size = 9, stroke = 1.1))) +
   borough_labels()
 
 # ---- Export ------------------------------------------------------------------------
@@ -119,5 +118,5 @@ save_draft <- function(plot, name) {
          width = w, height = h, units = "mm", dpi = 72, bg = "white")
 }
 save_draft(map_by_band, "draft-map-by-band")
-save_draft(map_by_size, "draft-map-by-size")
+save_draft(map_by_band_small, "draft-map-by-band-small")
 cat("Wrote draft maps to outputs/\n")
