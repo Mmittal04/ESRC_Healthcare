@@ -93,11 +93,28 @@ simplify_keep  <- 0.2
 simplify_max_m <- 20
 
 # ---- Colours ----------------------------------------------------------------
-deprivation_greys <- c("#f7f7f7", "#d9d9d9", "#bdbdbd", "#969696", "#737373")
+# Base layer, most to least deprived (national quintiles 1 to 5). Hues come
+# from a reference legend (29 Oct 2026): #5d0e07, #bb271a, #da954b, #f9da78,
+# #9dc384. They are muted in HCL so dots and callouts stand out: chroma cut to
+# 45% and capped at 30 (the source red is very saturated), lightness spaced
+# evenly from 52 to 92 so the order also reads in greyscale. Recompute with deprivation_palette() if the source hues change.
+deprivation_source <- c("#5d0e07", "#bb271a", "#da954b", "#f9da78", "#9dc384")
+deprivation_palette <- function(src = deprivation_source, chroma = 0.45,
+                                max_chroma = 30, lightness = c(52, 92)) {
+  hcl <- colorspace::coords(as(colorspace::hex2RGB(src), "polarLUV"))
+  colorspace::hex(colorspace::polarLUV(
+    seq(lightness[1], lightness[2], length.out = length(src)),
+    pmin(hcl[, "C"] * chroma, max_chroma), hcl[, "H"]
+  ), fixup = TRUE)
+}
+deprivation_colours <- deprivation_palette()
+
+# Practice dots: one blue gradient from least busy (light) to busiest (dark
+# navy). Blue sits opposite the base's reds, oranges and yellows.
 band_colours <- c(
-  busiest    = "#D55E00", # Okabe-Ito vermilion
-  typical    = "#ffffff",
-  least_busy = "#0072B2"  # Okabe-Ito blue
+  least_busy = "#C1DBEC",
+  typical    = "#7FABD3",
+  busiest    = "#273871"
 )
 outline_colour <- "#4d4d4d"
 
@@ -108,8 +125,8 @@ map_top_mm     <- 230 # space above the map for headline and how-to-read line
 # Practice dots, diameters in mm on paper. Plan design: busiest larger.
 dot_spec <- tibble::tribble(
   ~band,        ~diameter_mm, ~fill,                     ~outline,
-  "least_busy", 3.5,          band_colours[["least_busy"]], "#ffffff",
-  "typical",    3.5,          band_colours[["typical"]],    outline_colour,
+  "least_busy", 3.5,          band_colours[["least_busy"]], band_colours[["busiest"]],
+  "typical",    3.5,          band_colours[["typical"]],    band_colours[["busiest"]],
   "busiest",    5.5,          band_colours[["busiest"]],    "#ffffff"
 )
 # Draft alternative for the size story: dot area proportional to list size.

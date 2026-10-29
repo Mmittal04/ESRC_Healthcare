@@ -50,7 +50,7 @@ quintile_labels <- c("Most deprived fifth of England", "2", "3", "4",
 base_map <- function() {
   ggplot() +
     geom_sf(data = lsoa, aes(fill = factor(imd_quintile)), colour = NA) +
-    scale_fill_manual(values = rev(deprivation_greys), labels = quintile_labels,
+    scale_fill_manual(values = deprivation_colours, labels = quintile_labels,
                       name = "Neighbourhood deprivation (IMD 2025)") +
     geom_sf(data = boroughs_sf, fill = NA, colour = outline_colour, linewidth = 0.5) +
     coord_sf(crs = crs_bng, datum = NA, expand = FALSE,
