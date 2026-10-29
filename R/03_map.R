@@ -64,7 +64,7 @@ base_map <- function() {
     geom_sf(data = boroughs_sf, fill = NA, colour = outline_colour, linewidth = 0.5) +
     coord_sf(crs = crs_bng, datum = NA, expand = FALSE,
              xlim = bbox[c("xmin", "xmax")], ylim = bbox[c("ymin", "ymax")]) +
-    theme_void(base_size = 24) +
+    theme_void(base_size = 24, base_family = font_family) +
     theme(legend.position = "bottom", legend.direction = "vertical",
           legend.title = element_text(face = "bold"),
           legend.title.position = "top",
@@ -82,7 +82,8 @@ borough_labels <- function() {
   shadowtext::geom_shadowtext(
     data = label_points, aes(X, Y, label = borough),
     size = borough_label_pt / ggplot2::.pt, colour = outline_colour,
-    bg.colour = "white", bg.r = 0.12, fontface = "bold", nudge_y = 1800
+    bg.colour = "white", bg.r = 0.12, fontface = "bold", family = font_family,
+    nudge_y = 1800
   )
 }
 
@@ -118,7 +119,7 @@ map_sheet <- map_final +
   geom_point(data = markers, aes(mx, my), shape = 21, size = callout_marker_mm,
              fill = "white", colour = text_colour, stroke = 1.6) +
   geom_text(data = markers, aes(mx, my, label = id), size = text_pt[["callout_title"]] / .pt,
-            fontface = "bold", colour = text_colour)
+            fontface = "bold", family = font_family, colour = text_colour)
 
 # ---- Sheet ---------------------------------------------------------------------------
 # Everything is placed in mm from the sheet's top-left corner.
@@ -126,12 +127,11 @@ W <- print_size_mm[["width"]]; H <- print_size_mm[["height"]]; M <- page_margin_
 at <- \(top_mm) unit(H - top_mm, "mm")
 
 text_box <- function(text, top_mm, left_mm, width_mm, pt, face = "plain", lineheight = 1.15) {
-  # R's pdf device draws "-" as a minus sign; a soft hyphen prints as a hyphen.
-  text <- gsub("-", "­", text, fixed = TRUE)
   gridtext::textbox_grob(
     text, x = unit(left_mm, "mm"), y = at(top_mm), width = unit(width_mm, "mm"),
     hjust = 0, vjust = 1, halign = 0, valign = 1,
-    gp = gpar(fontsize = pt, fontface = face, col = text_colour, lineheight = lineheight)
+    gp = gpar(fontsize = pt, fontface = face, fontfamily = font_family,
+              col = text_colour, lineheight = lineheight)
   )
 }
 
@@ -145,15 +145,28 @@ draw_sheet <- function() {
   grid.newpage()
   grid.rect(gp = gpar(fill = "white", col = NA))
 
-  # Headline, subheadline, how to read.
+  # Headline on one line: the largest size up to text_pt that fits the width.
   r <- sheet_rows_mm
-  grid.draw(text_box(panel_headline, r[["headline_top"]], M, W - 2 * M,
-                     text_pt[["headline"]], "bold", lineheight = 1))
-  grid.draw(text_box(sprintf(panel_subheadline, facts$headline$pct_small_busy,
-                             facts$headline$pct_large_busy),
-                     r[["headline_top"]] + 78, M, W - 2 * M, text_pt[["subheadline"]]))
-  grid.draw(text_box(panel_how_to_read, r[["headline_top"]] + 120, M, W - 2 * M,
-                     text_pt[["how_to_read"]]))
+  headline_gp <- \(pt) gpar(fontsize = pt, fontface = "bold", fontfamily = font_family)
+  width_at_max <- convertWidth(grobWidth(textGrob(panel_headline, gp = headline_gp(text_pt[["headline"]]))),
+                               "mm", valueOnly = TRUE)
+  headline_pt <- floor(min(text_pt[["headline"]], text_pt[["headline"]] * (W - 2 * M) / width_at_max))
+  if (headline_pt < headline_min_pt) warning("Headline only fits at ", headline_pt, " pt")
+  message("Headline set at ", headline_pt, " pt")
+  headline_mm <- headline_pt * 0.3528
+  grid.text(panel_headline, x = unit(M, "mm"), y = at(r[["headline_top"]]), just = c("left", "top"),
+            gp = headline_gp(headline_pt))
+
+  # Subheadline and how-to-read line stack under it; the map must start below.
+  sub <- text_box(sprintf(panel_subheadline, facts$headline$pct_small_busy,
+                          facts$headline$pct_large_busy),
+                  r[["headline_top"]] + headline_mm + 10, M, W - 2 * M, text_pt[["subheadline"]])
+  sub_bottom <- r[["headline_top"]] + headline_mm + 10 + convertHeight(grobHeight(sub), "mm", valueOnly = TRUE)
+  how <- text_box(panel_how_to_read, sub_bottom + 8, M, W - 2 * M, text_pt[["how_to_read"]])
+  how_bottom <- sub_bottom + 8 + convertHeight(grobHeight(how), "mm", valueOnly = TRUE)
+  if (how_bottom + 8 > r[["map_top"]]) warning("Intro text runs into the map by ", round(how_bottom + 8 - r[["map_top"]]), " mm")
+  grid.draw(sub)
+  grid.draw(how)
 
   # Map at its exact print size.
   pushViewport(viewport(x = unit(M, "mm"), y = at(r[["map_top"]]), just = c("left", "top"),
@@ -177,7 +190,8 @@ draw_sheet <- function() {
                 r = unit(callout_marker_mm / 2, "mm"),
                 gp = gpar(fill = "white", col = text_colour, lwd = 4.5))
     grid.text(i, x = unit(left + callout_marker_mm / 2, "mm"), y = at(top + callout_marker_mm / 2),
-              gp = gpar(fontsize = text_pt[["callout_title"]], fontface = "bold", col = text_colour))
+              gp = gpar(fontsize = text_pt[["callout_title"]], fontface = "bold",
+                        fontfamily = font_family, col = text_colour))
     grid.draw(text_box(facts$clusters$title[i], top + 1, left + callout_marker_mm + 5,
                        col_w - callout_marker_mm - 5, text_pt[["callout_title"]], "bold"))
     grid.draw(text_box(facts$clusters$body[i], top + callout_marker_mm + 6, left, col_w,
@@ -198,18 +212,14 @@ draw_sheet <- function() {
 }
 
 # ---- Export ------------------------------------------------------------------------
-# WinAnsi encoding keeps curly apostrophes and real hyphens. Fonts are then
-# embedded with Ghostscript, which printers need.
-pdf_draft <- file.path(paths$outputs, "gp-map-a1-unembedded.pdf")
-pdf(pdf_draft, width = W / 25.4, height = H / 25.4,
-    useDingbats = FALSE, encoding = "WinAnsi.enc")
+# The macOS Quartz device draws system fonts such as Georgia and embeds them
+# in the PDF, which printers need. R's pdf() device can only use its own fonts.
+quartz(type = "pdf", file = file.path(paths$outputs, "gp-map-a1.pdf"),
+       width = W / 25.4, height = H / 25.4, bg = "white")
 draw_sheet()
 invisible(dev.off())
-embedFonts(pdf_draft, outfile = file.path(paths$outputs, "gp-map-a1.pdf"),
-           options = "-dPDFSETTINGS=/prepress")
-file.remove(pdf_draft)
-png(file.path(paths$outputs, "gp-map-a1-preview.png"), width = W, height = H,
-    units = "mm", res = 72, bg = "white")
+quartz(type = "png", file = file.path(paths$outputs, "gp-map-a1-preview.png"),
+       width = W / 25.4, height = H / 25.4, dpi = 72, bg = "white")
 draw_sheet()
 invisible(dev.off())
 cat("Wrote outputs/gp-map-a1.pdf and outputs/gp-map-a1-preview.png\n")

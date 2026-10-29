@@ -23,7 +23,8 @@ quarto render gp-map.qmd --output-dir outputs/notebook    # checks, bands and ca
 source("R/03_map.R")        # A1 sheet: outputs/gp-map-a1.pdf (fonts embedded) and a preview PNG
 ```
 
-The PDF step needs Ghostscript (`brew install ghostscript`) to embed fonts.
+The sheet is drawn with the macOS Quartz device, which embeds the Georgia font in
+the PDF; on another system, swap in a device that can embed system fonts.
 
 ## Layout
 

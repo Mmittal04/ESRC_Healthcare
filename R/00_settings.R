@@ -123,10 +123,10 @@ page_margin_mm <- 20
 # Vertical bands of the sheet, measured from the top edge in mm.
 sheet_rows_mm <- c(
   headline_top = 22,  # headline, subheadline and how-to-read line start here
-  map_top      = 182, # map (554 x 406 mm) starts here
-  legend_top   = 598, # three legends in a row
-  callout_top  = 678, # three numbered callouts in columns
-  footer_top   = 778  # sources, dates, method, exclusions
+  map_top      = 132, # map (554 x 406 mm) starts here
+  legend_top   = 552, # three legends in a row
+  callout_top  = 662, # three numbered callouts in columns
+  footer_top   = 770  # sources, dates, method, exclusions
 )
 
 # Practice dots: colour shows the busy band (blue gradient above), diameter
@@ -185,8 +185,12 @@ callout_marker_offset_m <- tibble::tribble(
 text_pt <- c(headline = 96, subheadline = 40, how_to_read = 28,
              callout_title = 34, callout_body = 27, legend = 26, footer = 19)
 text_colour <- "#1a1a1a"
+font_family <- "Georgia" # all panel text (decision, 29 Oct 2026)
+headline_min_pt <- 72
 
-panel_headline <- "Smaller surgeries stretch their GPs furthest"
+# One line, sized to fit the sheet width; "Small" rather than "Smaller" so it
+# fits above the 72 pt minimum (29 Oct 2026).
+panel_headline <- "Small surgeries stretch their GPs furthest"
 panel_subheadline <- "Across Greater Manchester, %d%% of small GP practices are in the busiest quarter for patients per GP, compared with %d%% of large practices."
 panel_how_to_read <- "Each dot is a GP practice. Darker blue means more patients for each full-time GP; bigger dots are practices with more registered patients. The background shows how deprived each neighbourhood is."
 
