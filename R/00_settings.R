@@ -131,11 +131,11 @@ dot_spec <- tibble::tribble(
   "typical",    band_colours[["typical"]],    band_colours[["busiest"]],
   "busiest",    band_colours[["busiest"]],    "#ffffff"
 )
-dot_size_mm <- c(small = 6, medium = 8, large = 10.5)
+dot_size_mm <- c(small = 5.5, medium = 9, large = 13.5) # widened 29 Oct 2026
 
 # Practices sharing one postcode are spread on a small ring so dots do not
-# stack; radius in metres on the ground (about 4.5 mm at A1).
-site_ring_m <- 450
+# stack; radius in metres on the ground (about 5.5 mm at A1).
+site_ring_m <- 550
 
 borough_label_pt <- 22
 
