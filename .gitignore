@@ -6,9 +6,12 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 
-# Outputs are rebuilt by the scripts
+# Outputs are rebuilt by the scripts; the finished map is committed so it can
+# be viewed on GitHub (recommit after re-running R/03_map.R).
 outputs/*
 !outputs/.gitkeep
+!outputs/gp-map-a1.pdf
+!outputs/gp-map-a1-preview.png
 
 # R and Quarto
 .Rhistory
