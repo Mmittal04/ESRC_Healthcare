@@ -80,6 +80,25 @@ stopifnot("A GP role is not assigned to a group" = all(gp_fte$unmapped_roles == 
 wf_join <- report_join("GM practices x workforce", gm, gp_fte, "prac_code")
 gm <- left_join(gm, select(gp_fte, -unmapped_roles), by = "prac_code")
 
+# ---- 2b. Returns unchanged since the prior release ------------------------------
+# NWRS keeps a practice's last return until the practice updates it, so a
+# return identical in every row to the previous month may be carried forward.
+# It is flagged for the notebook, not excluded.
+read_wf <- \(name) read_csv(raw(name), na = character(),
+                            col_types = cols(.default = col_character())) |>
+  clean_names() |>
+  filter(prac_code %in% gm$prac_code)
+wf_now <- read_wf("workforce")
+wf_prev <- read_wf("workforce_prev")
+unchanged <- inner_join(wf_prev, wf_now,
+                        by = c("prac_code", "staff_group", "detailed_staff_role", "measure"),
+                        suffix = c("_prev", "_now")) |>
+  group_by(prac_code) |>
+  summarise(workforce_unchanged = all(value_prev == value_now), .groups = "drop")
+gm <- left_join(gm, unchanged, by = "prac_code")
+cat("Workforce returns identical to the prior release:",
+    sum(gm$workforce_unchanged, na.rm = TRUE), "of", sum(!is.na(gm$workforce_unchanged)), "\n")
+
 # ---- 3. Patients per GP and exclusions --------------------------------------
 # Data-quality reasons come first, so each practice carries one reason only.
 gm <- gm |>
@@ -234,7 +253,7 @@ cat("Practices whose point and postcode borough disagree:",
 practices <- gm |>
   select(prac_code, prac_name, pcn_name, borough, postcode, practices_at_site,
          east, north, patients, fte_qualified, fte_retainer, fte_locum,
-         fte_trainee, patients_per_gp, kept, exclusion_type, exclusion, band,
+         fte_trainee, patients_per_gp, workforce_unchanged, kept, exclusion_type, exclusion, band,
          mean_patient_rank, patient_quintile, surgery_lsoa, surgery_decile,
          surgery_quintile) |>
   arrange(prac_code)

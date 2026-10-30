@@ -23,6 +23,10 @@ quarto render gp-map.qmd --output-dir outputs/notebook    # checks, bands and ca
 source("R/03_map.R")        # A1 sheet: outputs/gp-map-a1.pdf (fonts embedded) and a preview PNG
 ```
 
+```r
+source("R/04_print_checks.R") # page size, fonts, every panel number traced; writes outputs/print_checks.csv
+```
+
 The sheet is drawn with the macOS Quartz device, which embeds the Georgia font in
 the PDF; on another system, swap in a device that can embed system fonts.
 
@@ -38,7 +42,8 @@ the PDF; on another system, swap in a device that can embed system fonts.
 │   ├── 01_download.R    fetch each input, record the release date
 │   ├── 02_clean.R       filter, join, ratio, exclusions, coordinates
 │   ├── callout_facts.R  every number on the panel, shared by notebook and map
-│   └── 03_map.R         build the map and the A1 sheet, export PDF
+│   ├── 03_map.R         build the map and the A1 sheet, export PDF
+│   └── 04_print_checks.R automated checks on the exported PDF
 ├── gp-map.qmd           annotated notebook: checks, bands, callout facts
 └── outputs/             print PDF, preview PNG, notebook/ (rendered notebook)
 ```

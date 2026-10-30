@@ -173,6 +173,25 @@ kable(mutate(hand, across(c(fte_qualified, raw_fte), \(x) round(x, 3)),
 stopifnot(all(hand$match))
 ```
 
+## Returns unchanged since the previous release
+
+Practices whose September workforce return is identical, row for row, to
+August. NWRS keeps a practice's last return until it is updated, so this is
+common and not an error in itself. The check is whether unchanged returns are
+spread evenly across the bands; if they cluster in one band, that band may rest
+on older data.
+
+```{r}
+#| label: unchanged-returns
+kept |>
+  group_by(band) |>
+  summarise(practices = n(),
+            unchanged = sum(workforce_unchanged),
+            pct_unchanged = pct(workforce_unchanged)) |>
+  kable()
+cat("All kept practices:", pct(kept$workforce_unchanged), "% unchanged\n")
+```
+
 ## Deprivation measures compared
 
 Patient-weighted quintile (used for the callout facts) against the quintile of

@@ -13,6 +13,8 @@ paths <- list(
 
 raw_files <- list(
   workforce   = "3 General Practice – September 2026 Practice Level - High level.csv",
+  # Prior release, kept only to flag returns that did not change between months.
+  workforce_prev = "3 General Practice – August 2026 Practice Level - High level.csv",
   definitions = "2 General Practice High-level Practice-Level CSV. Overall Definitions.xlsx",
   patients    = "gp-reg-pat-prac-all.csv",
   practice_map = "gp-reg-pat-prac-map.csv",

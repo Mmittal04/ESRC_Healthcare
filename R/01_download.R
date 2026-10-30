@@ -21,6 +21,8 @@ manifest <- read_lines(file.path(paths$raw, "MANIFEST.md")) |>
   str_subset("^\\| `") |>
   str_match("^\\| `([^`]+)` .*`([0-9a-f]{64})` \\|$") |>
   as_tibble(.name_repair = ~ c("line", "file", "sha256_manifest")) |>
+  # Rows of the "Fetched by" table carry no checksum; download_log.csv has them.
+  filter(!is.na(file)) |>
   select(-line)
 
 manifest_check <- manifest |>

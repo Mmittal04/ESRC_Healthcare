@@ -153,6 +153,7 @@ draw_sheet <- function() {
   headline_pt <- floor(min(text_pt[["headline"]], text_pt[["headline"]] * (W - 2 * M) / width_at_max))
   if (headline_pt < headline_min_pt) warning("Headline only fits at ", headline_pt, " pt")
   message("Headline set at ", headline_pt, " pt")
+  writeLines(as.character(headline_pt), file.path(paths$outputs, "headline_pt.txt"))
   headline_mm <- headline_pt * 0.3528
   grid.text(panel_headline, x = unit(M, "mm"), y = at(r[["headline_top"]]), just = c("left", "top"),
             gp = headline_gp(headline_pt))
