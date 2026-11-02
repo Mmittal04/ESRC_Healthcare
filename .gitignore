@@ -12,6 +12,8 @@ outputs/*
 !outputs/.gitkeep
 !outputs/gp-map-a1.pdf
 !outputs/gp-map-a1-preview.png
+!outputs/gp-map-a1-blank.pdf
+!outputs/gp-map-a1-blank-preview.png
 
 # R and Quarto
 .Rhistory

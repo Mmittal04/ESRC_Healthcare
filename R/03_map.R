@@ -212,6 +212,26 @@ draw_sheet <- function() {
   grid.draw(text_box(footer, r[["footer_top"]], M, W - 2 * M, text_pt[["footer"]]))
 }
 
+# ---- Blank map -------------------------------------------------------------------------
+# Borough outlines and names only: no shading, dots, callouts or text panels.
+# The map sits at the same size and position as on the main sheet, so the two
+# line up when overlaid or printed on the same stock.
+map_blank <- ggplot() +
+  geom_sf(data = boroughs_sf, fill = "white", colour = outline_colour, linewidth = 0.5) +
+  coord_sf(crs = crs_bng, datum = NA, expand = FALSE,
+           xlim = bbox[c("xmin", "xmax")], ylim = bbox[c("ymin", "ymax")]) +
+  theme_void(base_family = font_family) +
+  borough_labels()
+
+draw_blank_sheet <- function() {
+  grid.newpage()
+  grid.rect(gp = gpar(fill = "white", col = NA))
+  pushViewport(viewport(x = unit(M, "mm"), y = at(sheet_rows_mm[["map_top"]]), just = c("left", "top"),
+                        width = unit(map_width_mm, "mm"), height = unit(map_height_mm, "mm")))
+  grid.draw(ggplotGrob(map_blank + theme(plot.margin = margin(0, 0, 0, 0))))
+  popViewport()
+}
+
 # ---- Export ------------------------------------------------------------------------
 # The macOS Quartz device draws system fonts such as Georgia and embeds them
 # in the PDF, which printers need. R's pdf() device can only use its own fonts.
@@ -223,4 +243,12 @@ quartz(type = "png", file = file.path(paths$outputs, "gp-map-a1-preview.png"),
        width = W / 25.4, height = H / 25.4, dpi = 72, bg = "white")
 draw_sheet()
 invisible(dev.off())
-cat("Wrote outputs/gp-map-a1.pdf and outputs/gp-map-a1-preview.png\n")
+quartz(type = "pdf", file = file.path(paths$outputs, "gp-map-a1-blank.pdf"),
+       width = W / 25.4, height = H / 25.4, bg = "white")
+draw_blank_sheet()
+invisible(dev.off())
+quartz(type = "png", file = file.path(paths$outputs, "gp-map-a1-blank-preview.png"),
+       width = W / 25.4, height = H / 25.4, dpi = 72, bg = "white")
+draw_blank_sheet()
+invisible(dev.off())
+cat("Wrote outputs/gp-map-a1.pdf, outputs/gp-map-a1-blank.pdf and their preview PNGs\n")
