@@ -214,23 +214,18 @@ draw_sheet <- function() {
 
 # ---- Blank map -------------------------------------------------------------------------
 # Borough outlines and names only: no shading, dots, callouts or text panels.
-# The map sits at the same size and position as on the main sheet, so the two
-# line up when overlaid or printed on the same stock.
+# The page is cropped to the map at the same scale as the A1 sheet (1:98,000),
+# with a small white margin so outlines are not clipped at the edges.
+blank_margin_mm <- 10
 map_blank <- ggplot() +
   geom_sf(data = boroughs_sf, fill = "white", colour = outline_colour, linewidth = 0.5) +
   coord_sf(crs = crs_bng, datum = NA, expand = FALSE,
            xlim = bbox[c("xmin", "xmax")], ylim = bbox[c("ymin", "ymax")]) +
   theme_void(base_family = font_family) +
+  theme(plot.margin = margin(blank_margin_mm, blank_margin_mm, blank_margin_mm,
+                             blank_margin_mm, unit = "mm")) +
   borough_labels()
-
-draw_blank_sheet <- function() {
-  grid.newpage()
-  grid.rect(gp = gpar(fill = "white", col = NA))
-  pushViewport(viewport(x = unit(M, "mm"), y = at(sheet_rows_mm[["map_top"]]), just = c("left", "top"),
-                        width = unit(map_width_mm, "mm"), height = unit(map_height_mm, "mm")))
-  grid.draw(ggplotGrob(map_blank + theme(plot.margin = margin(0, 0, 0, 0))))
-  popViewport()
-}
+blank_size_mm <- c(map_width_mm, map_height_mm) + 2 * blank_margin_mm
 
 # ---- Export ------------------------------------------------------------------------
 # The macOS Quartz device draws system fonts such as Georgia and embeds them
@@ -243,12 +238,11 @@ quartz(type = "png", file = file.path(paths$outputs, "gp-map-a1-preview.png"),
        width = W / 25.4, height = H / 25.4, dpi = 72, bg = "white")
 draw_sheet()
 invisible(dev.off())
-quartz(type = "pdf", file = file.path(paths$outputs, "gp-map-a1-blank.pdf"),
-       width = W / 25.4, height = H / 25.4, bg = "white")
-draw_blank_sheet()
-invisible(dev.off())
-quartz(type = "png", file = file.path(paths$outputs, "gp-map-a1-blank-preview.png"),
-       width = W / 25.4, height = H / 25.4, dpi = 72, bg = "white")
-draw_blank_sheet()
-invisible(dev.off())
-cat("Wrote outputs/gp-map-a1.pdf, outputs/gp-map-a1-blank.pdf and their preview PNGs\n")
+for (type in c("pdf", "png")) {
+  file <- file.path(paths$outputs, if (type == "pdf") "gp-map-blank.pdf" else "gp-map-blank-preview.png")
+  quartz(type = type, file = file, width = blank_size_mm[1] / 25.4,
+         height = blank_size_mm[2] / 25.4, dpi = 72, bg = "white")
+  print(map_blank)
+  invisible(dev.off())
+}
+cat("Wrote outputs/gp-map-a1.pdf, outputs/gp-map-blank.pdf and their preview PNGs\n")
